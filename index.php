@@ -10,37 +10,41 @@ define('PASSWORD', 'guYTqxyD1');
 define('CONNECTION', 'sql1.njit.edu');
 
 class dbConn{
-    //variable to hold connection object.
+    
     protected static $db;
-    //private construct - class cannot be instatiated externally.
-    private function __construct() {
+    
+    private function __construct() 
+    {
         try {
-            // assign PDO object to db variable
-            self::$db = new PDO( 'mysql:host=' . CONNECTION .';dbname=' . DATABASE, USERNAME, PASSWORD );
-            self::$db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-        }
-        catch (PDOException $e) {
-            //Output error - would normally log this to error file rather than output to user.
-            echo "Connection Error: " . $e->getMessage();
-        }
+            	self::$db = new PDO( 'mysql:host=' . CONNECTION .';dbname=' . DATABASE, USERNAME, PASSWORD );
+            	self::$db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+        	}
+
+        catch (PDOException $e) 
+        	{
+        		echo "Connection Error: " . $e->getMessage();
+        	}
     }
-    // get connection function. Static method - accessible without instantiation
-    public static function getConnection() {
-        //Guarantees single instance, if no connection object exists then create one.
-        if (!self::$db) {
-            //new connection object.
-            new dbConn();
-        }
-        //return connection.
+    
+    public static function getConnection() 
+    {
+        if (!self::$db) 
+        	{
+            	new dbConn();
+        	}
         return self::$db;
     }
 }
-class collection {
-    static public function create() {
+class collection 
+{
+    static public function create() 
+    {
         $model = new static::$modelName;
         return $model;
     }
-    static public function findAll() {
+
+    static public function findAll() 
+    {
         $db = dbConn::getConnection();
         $tableName = get_called_class();
         $sql = 'SELECT * FROM ' . $tableName;
@@ -52,6 +56,7 @@ class collection {
         echo '<h1> Print full table: ' .$tableName . '</h1>';
         return $recordsSet;
     }
+
     static public function findOne($id) {
         $db = dbConn::getConnection();
         $tableName = get_called_class();
@@ -65,22 +70,31 @@ class collection {
         return $recordsSet;
     }
 }
-class accounts extends collection {
+
+class accounts extends collection 
+{
     protected static $modelName = 'account';
 }
-class todos extends collection {
+
+class todos extends collection 
+{
     protected static $modelName = 'todo';
 }
-class model {
-    //protected $id;
+
+class model 
+{
     public function save()
     {
         echo "a". $this->id;
-        if ($this->id == '') {
+        if ($this->id == '') 
+        {
             $sql = $this->insert();
-        } else {
+        } 
+        else 
+        {
             $sql = $this->update();
         }
+
         $db = dbConn::getConnection();
         $statement = $db->prepare($sql);
         $statement->execute();
@@ -88,7 +102,8 @@ class model {
     }
 
 
-    private function insert() {
+    private function insert() 
+    {
         $modelName=static::$modelName;
         $tableName = $modelName::getTablename();
         $array = get_object_vars($this);
@@ -96,28 +111,32 @@ class model {
         $valueString = "'".implode("','", array_values($array))."'";
         $sql =  'INSERT INTO '. $tableName .' ('. $columnString .') VALUES (' .$valueString. ')';
         echo $sql;
-
         return $sql;
     }
 
-    private function update() {
+    private function update() 
+    {
         $modelName=static::$modelName;
         $tableName = $modelName::getTablename();
         $array = get_object_vars($this);
         $comma = " ";
         $sql = 'UPDATE '.$tableName.' SET ';
-        foreach ($array as $key=>$value){
+        foreach ($array as $key=>$value)
+        {
             if( ! empty($value) && $key != "id")
             {
                 $sql .= $comma . $key . ' = "'. $value .'"';
                 $comma = ", ";
             }
         }
+
         $sql .= ' WHERE id='.$this->id;
         echo $sql;
         return $sql;
     }
-    public function delete() {
+
+    public function delete() 
+    {
         $db = dbConn::getConnection();
         $modelName=static::$modelName;
         $tableName = $modelName::getTablename();
@@ -127,8 +146,11 @@ class model {
         $statement->execute();
         echo " One record deleted";
     }
+
 }
-class account extends model {
+
+class account extends model 
+{
     public $id;
     public $email;
     public $fname;
@@ -137,13 +159,18 @@ class account extends model {
     public $birthday;
     public $gender;
     public $password;
+
     protected static $modelName = 'account';
-    public static function getTablename(){
+
+    public static function getTablename()
+    {
         $tableName='accounts';
         return $tableName;
     }
 }
-class todo extends model {
+
+class todo extends model 
+{
     public $id;
     public $owneremail;
     public $ownerid;
@@ -153,20 +180,26 @@ class todo extends model {
     public $isdone;
 
     protected static $modelName = 'todo';
-    public static function getTablename(){
+
+    public static function getTablename()
+    {
         $tableName='todos';
         return $tableName;
     }
 }
 
-class htmlTable{
-    public function genarateTable($record){
+class htmlTable
+{
+    public function genarateTable($record)
+    {
         $tableGen = '<table border="1" ';
 
 
-            foreach($record as $row => $innerArray){
+            foreach($record as $row => $innerArray)
+            {
                 $tableGen .= '<tr>';
-                foreach($innerArray as $innerRow => $value){
+                foreach($innerArray as $innerRow => $value)
+                {
 
                     $tableGen .= '<td>' . $value.'</td>';
 
@@ -176,14 +209,14 @@ class htmlTable{
 
             $tableGen.='</table>';
             print_r($tableGen);
-        }
+    }
 }
 
 $obj = new htmlTable();
 $obj = new main();
 
 
-    class main
+class main
         {
             public function __construct()
         {
@@ -191,7 +224,7 @@ $obj = new main();
         $records = todos::findAll();
         $tableGen = htmlTable::genarateTable($records);
 
-        $id=8;
+        $id=1;
         $records = todos::findOne($id);
         $tableGen = htmlTable::genarateTable($records);
 
